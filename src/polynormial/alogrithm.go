@@ -2,7 +2,7 @@ package polynormail
 
 import (
 	"fmt"
-	"math.big"
+	"math/big"
 )
 
 type poly big.Int
@@ -10,8 +10,11 @@ type poly big.Int
 func NewXn(n int) poly {
 	r := big.NewInt(1)
 	for i:=0;i<n;i++ {
-		r.mul(r,big.NewInt(2))
+		r.Mul(r,big.NewInt(2))
 	}
-	return r
+	return poly(*r)
 }
 
+func (x poly) Println() {
+	fmt.Println(x)
+}
