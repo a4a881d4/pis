@@ -6,7 +6,9 @@ import (
 	"math/rand"
 )
 
-type Poly big.Int
+type Poly struct {
+	p big.Int
+}
 
 var polyRand *rand.Rand
 
@@ -14,37 +16,36 @@ func init() {
 	polyRand = rand.New(rand.NewSource(1))
 }
 
-func NewXn(n int) Poly {
-	if n<0 {
-		fmt.Println("Xn: must n >= 0",n)
+func NewXn(n int) *Poly {
+	if n < 0 {
+		fmt.Println("Xn: must n >= 0", n)
 	}
 	r := big.NewInt(1)
-	for i:=0;i<n;i++ {
-		r.Mul(r,big.NewInt(2))
+	for i := 0; i < n; i++ {
+		r.Mul(r, big.NewInt(2))
 	}
-	return Poly(*r)
+	return &Poly{p: *r}
 }
 
-func NewRand(n int) Poly {
-	m := big.Int(NewXn(n))
+func NewRand(n int) *Poly {
+	m := NewXn(n).p
 	v := big.NewInt(0)
-	v.Rand(polyRand,&m)
-	return Poly(*v)
+	v.Rand(polyRand, &m)
+	return &Poly{p: *v}
 }
 
 func (x *Poly) Println(s string) {
-	y := big.Int(*x)
-	fmt.Println(s,(&y).String())
+	fmt.Println(s, (&x.p).String())
 }
 
 func (x *Poly) Order() int {
-	y := big.Int(*x)
+	y := x.p
 	i := 0
 	r := big.NewInt(1)
 	for {
-		if r.Cmp(&y)<0 {
+		if r.Cmp(&y) < 0 {
 			i += 1
-			r.Mul(r,big.NewInt(2))
+			r.Mul(r, big.NewInt(2))
 		} else {
 			break
 		}
@@ -55,35 +56,49 @@ func (x *Poly) Order() int {
 
 func (x *Poly) PrintPoly() {
 	o := x.Order()
-	var _y big.Int = big.Int(*x)
-	y := &_y
-	for i,j:=o,0;i>0;i-- {
-		if y.Bit(i)!=0 {
-			fmt.Printf("X[%03d]",i)
-	        j++
-            if j==8 {
-                j=0
-                fmt.Printf("\n")
-            }
-    	}
+	y := &(x.p)
+	for i, j := o, 0; i > 0; i-- {
+		if y.Bit(i) != 0 {
+			fmt.Printf("X[%03d]", i)
+			j++
+			if j == 8 {
+				j = 0
+				fmt.Printf("\n")
+			}
+		}
 	}
-	if y.Bit(0)!=0 && o!=0 {
-        fmt.Printf("1")
+	if y.Bit(0) != 0 && o != 0 {
+		fmt.Printf("1")
 	}
 	fmt.Println()
 }
 
-func NewPoly(y *Poly) Poly {
+func NewPoly(y *Poly) *Poly {
 	x := big.NewInt(0)
-	z := big.Int(*y)
+	z := y.p
 	x.SetBytes((&z).Bytes())
-	return Poly(*x)
+	return &Poly{p: *x}
 }
 
-func (x *Poly) Add(y *Poly) *Poly {
-	var _x, _y = big.Int(*x), big.Int(*y)
-	r := (&_x).Xor(&_x,&_y)
-	return &(Poly(*r))
+func (z *Poly) Add(x, y *Poly) *Poly {
+	r := (&z.p).Xor(&x.p, &y.p)
+	z.p = *r
+	return z
+}
+
+func (z *Poly) Mul(x, y *Poly) *Poly {
+	s := big.NewInt(0)
+	o := y.Order()
+	ix, iy := x.p, y.p
+	px, py := &ix, &iy
+	for i := 0; i <= o; i++ {
+		if py.Bit(i) != 0 {
+			s.Xor(s, px)
+		}
+		px.Lsh(px, 1)
+	}
+	z.p = *s
+	return z
 }
 
 /*
@@ -92,15 +107,15 @@ func (x *Poly) Add(y *Poly) *Poly {
 #include<memory.h>
 #include<stdio.h>
 #include<assert.h>
- 
- 
- 
- 
+
+
+
+
 strPoly::strPoly()
 {
     length=0;
     debug=0;
-    poly = new UCHAR[POLYSIZE]; 
+    poly = new UCHAR[POLYSIZE];
     memset( poly, 0, POLYSIZE );
     div=NULL;
     rem=NULL;
@@ -109,7 +124,7 @@ strPoly::strPoly()
     mulTab=NULL;
     pRoot=NULL;
 }
- 
+
 strPoly::~strPoly( )
 {
     delete[] poly;
@@ -120,11 +135,11 @@ strPoly::~strPoly( )
     if( index )
         delete[] index;
     if( power )
-        delete[] power; 
+        delete[] power;
     if( mulTab )
         delete[] mulTab;
 }
- 
+
 int strPoly::genTable()
 {
     if( length>9 )
@@ -133,14 +148,14 @@ int strPoly::genTable()
     rem = new UCHAR[256];
     index = new UCHAR[256];
     power = new UCHAR[256];
-     
+
     strPoly pa,pb;
     int i,j,k;
     rem[0]=div[0]=0;
     for( i=0;i<256;i++ )
     {
         pa.int2Poly( i<<(length-1) );
-#if 0       
+#if 0
         printf("a:");
         pa.printPoly();
         printf("\n");
@@ -156,7 +171,7 @@ int strPoly::genTable()
         printf("d:");
         pb.printPoly();
         printf("\n");
-#endif  
+#endif
         j=i<<(length-1);
         j=(j&0xff)|(j>>8);
         j&=0xff;
@@ -169,7 +184,7 @@ int strPoly::genTable()
         }
         if( pb.poly2Int( div+j )>1 )
             return -3;
-                 
+
     }
     order = (1<<(length-1))-1;
     int a=1;
@@ -180,7 +195,7 @@ int strPoly::genTable()
     printf("p=%x\n",gfp);
     printPoly();
     printf("\n");
-#endif  
+#endif
     for( i=0;i<order;i++ )
     {
         power[i]=a;
@@ -191,25 +206,25 @@ int strPoly::genTable()
     }
     index[0]=order;
     power[order]=0;
-#if 0   
+#if 0
     for( i=0;i<order+1;i++ )
     {
-        printf("index[%d]=%d\n",i,index[i]);    
+        printf("index[%d]=%d\n",i,index[i]);
     }
-#endif  
-#if 0   
+#endif
+#if 0
     for( i=0;i<256;i++ )
     {
-        printf("div[%d]=%02x rem[%d]=%02x\n",i,div[i]&0xff,i,rem[i]&0xff);  
+        printf("div[%d]=%02x rem[%d]=%02x\n",i,div[i]&0xff,i,rem[i]&0xff);
     }
-#endif  
- 
-    return 0;   
+#endif
+
+    return 0;
 }
- 
+
 void strPoly::printPoly( )
 {
-     
+
     int i;
     int j=0;
     for( i=length-1;i>0;i-- )
@@ -228,7 +243,7 @@ void strPoly::printPoly( )
     if( poly[0]!=0 && length!=0 )
         printf("%x",poly[0]);
 }
- 
+
 void strPoly::copyPoly( strPoly& a )
 {
     this->length=a.length;
@@ -237,17 +252,17 @@ void strPoly::copyPoly( strPoly& a )
     for( i=0;i<this->length;i++ )
         this->poly[i]=a.poly[i];
 }
- 
+
 void strPoly::xk( int k )
 {
     this->length=k+1;
     memset( poly, 0, POLYSIZE );
     this->poly[k]=1;
 }
- 
+
 void strPoly::pdiv( strPoly& a, strPoly& b )
 {
- 
+
     int i,j;
     memset( poly, 0, POLYSIZE );
     this->length=a.length+1-b.length;
@@ -265,46 +280,46 @@ void strPoly::pdiv( strPoly& a, strPoly& b )
         if( a.poly[i]!=0 )
         {
             a.length=i+1;
-            break;  
+            break;
         }
     }
     if( i==-1 )
         a.length=0;
 }
- 
+
 void strPoly::padd( strPoly& a, strPoly& b )
 {
     strPoly d;
     int i,j;
-    if( a.length>b.length )  
+    if( a.length>b.length )
     {
         d.copyPoly(a);
         for( i=0;i<b.length;i++ )
-            d.poly[i]^=b.poly[i];   
+            d.poly[i]^=b.poly[i];
     }
     else
     {
         d.copyPoly(b);
         for( i=0;i<a.length;i++ )
-            d.poly[i]^=a.poly[i];   
+            d.poly[i]^=a.poly[i];
     }
     for( i=d.length-1;i>=0;i-- )
     {
         if( d.poly[i]!=0 )
         {
             d.length=i+1;
-            break;  
+            break;
         }
     }
     if( i==-1 )
         d.length=0;
     this->copyPoly(d);
 }
- 
- 
+
+
 void strPoly::pmul( strPoly& a, strPoly& b )
 {
- 
+
     int i,j;
     strPoly d;
     d.length=a.length+b.length-1;
@@ -314,8 +329,8 @@ void strPoly::pmul( strPoly& a, strPoly& b )
         a.printPoly();
         printf("\nMul: b");
         b.printPoly();
-             
-    }   
+
+    }
     for( i=0;i<d.length;i++)
         d.poly[i]=0;
     for( i=0;i<b.length;i++ )
@@ -328,11 +343,11 @@ void strPoly::pmul( strPoly& a, strPoly& b )
         printf("\nMul: c");
         d.printPoly();
         printf("\n");
-             
-    }   
+
+    }
     copyPoly(d);
 }
- 
+
 void strPoly::int2Poly( int i )
 {
     int k;
@@ -342,29 +357,29 @@ void strPoly::int2Poly( int i )
     {
         poly[length]=k&1;
         length++;
-#if 0       
+#if 0
         printf("%d: ",k);
         printPoly();
         printf("\n");
 #endif
     }
 }
- 
+
 int strPoly::findp( strPoly dpp[], int p )
 {
     strPoly a,b,c,d;
     int i,j,l,k;
-     
+
     a.xk(p);
     a.poly[0]=1;
- 
+
     i=3;
     l=0;
- 
+
     while(i<0x80000000)
     {
         b.int2Poly(i);
-         
+
         for(k=0;k<l;k++)
         {
             d.copyPoly(b);
@@ -372,7 +387,7 @@ int strPoly::findp( strPoly dpp[], int p )
             if( c.length==0 )
                 break;
         }
-         
+
         while( k==l )
         {
             d.copyPoly(a);
@@ -387,12 +402,12 @@ int strPoly::findp( strPoly dpp[], int p )
             break;
         i++;
     }
-    return l;   
+    return l;
 }
- 
+
 int strPoly::rdiv( strPoly& a, strPoly& b, strPoly& m, strPoly& n)
 {
-     
+
     if( debug==1 )
     {
         printf("\n a:\n");
@@ -405,7 +420,7 @@ int strPoly::rdiv( strPoly& a, strPoly& b, strPoly& m, strPoly& n)
     strPoly *pg1,*pg2,*pg3;
     strPoly *mk0,*mk1,*mk2;
     int i,j,k;
-     
+
     g3.copyPoly(b);
     g2.copyPoly(a);
     pg1=&g1;
@@ -413,8 +428,8 @@ int strPoly::rdiv( strPoly& a, strPoly& b, strPoly& m, strPoly& n)
     pg3=&g3;
     i=0;
     strPoly *t;
-     
-    while( pg3->length != 1 )    
+
+    while( pg3->length != 1 )
     {
         t=pg1;
         pg1=pg2;
@@ -444,18 +459,18 @@ int strPoly::rdiv( strPoly& a, strPoly& b, strPoly& m, strPoly& n)
             return -1;
         }
     }
-     
+
     mk2=&g3;
     mk1=&g2;
     mk0=&g1;
-     
+
     mk2->length=1;
     mk2->poly[0]=1;
-     
+
     mk1->copyPoly( dl[i-1] );
     n.copyPoly( *mk2 );
     m.copyPoly( *mk1 );
-     
+
     for( j=i-2;j>=0;j-- )
     {
         if( debug==1 )
@@ -489,20 +504,20 @@ int strPoly::rdiv( strPoly& a, strPoly& b, strPoly& m, strPoly& n)
         mk1=mk0;
         mk0=t;
     }
-     
+
     if( debug==1 )
-    {   
+    {
         printf("\n m:\n");
         m.printPoly( );
         printf("\n n:\n");
         n.printPoly( );
     }
-     
+
     delete[] dl;
-    return 0;   
-         
+    return 0;
+
 }
- 
+
 int strPoly::poly2Int( UCHAR *p )
 {
     int i,j,k;
@@ -515,21 +530,21 @@ int strPoly::poly2Int( UCHAR *p )
             if(poly[j+k]==1)
                 p[j/8]|=(1<<k);
     }
-    return (length+7)/8;    
+    return (length+7)/8;
 }
- 
+
 void strPoly::analyze( strPoly b[], int num, strPoly dp[] )
 {
     int i;
     strPoly c;
-    for( i=0;i<num;i++ ) 
+    for( i=0;i<num;i++ )
     {
         b[i].copyPoly(*this);
         c.pdiv(b[i],dp[i]);
     }
 }
- 
- 
+
+
 void strPoly::synthesize( strPoly a[], int num, int p, strPoly dp[], strPoly mp[] )
 {
     int i;
@@ -538,7 +553,7 @@ void strPoly::synthesize( strPoly a[], int num, int p, strPoly dp[], strPoly mp[
     {
         a[i].pmul(a[i],mp[i]);
         c.pdiv(a[i],dp[i]);
-#if DEBUGSYN        
+#if DEBUGSYN
         printf("a[%d] :",i);
         a[i].printPoly();
         printf("\n");
@@ -553,9 +568,9 @@ void strPoly::synthesize( strPoly a[], int num, int p, strPoly dp[], strPoly mp[
         a[i].pdiv(c,dp[i]);
         padd(a[i],*this);
     }
-     
+
 }
- 
+
 UCHAR strPoly::remainder( UCHAR *p, UCHAR *d, int len )
 {
     UCHAR r=0;
@@ -565,24 +580,24 @@ UCHAR strPoly::remainder( UCHAR *p, UCHAR *d, int len )
 //  printf("mask:%02x\n",(int)mask&0xff);
     s=p[len-1]&(~mask);
     r=p[len-1]&(mask);
-    for( i=len-1;i>=0;i-- )  
+    for( i=len-1;i>=0;i-- )
     {
         d[i]=div[s];
         r^=rem[s];
 #if 0
         printf(" s=%02x r=%02x div[s]=%02x rem[s]=%02x d[%d]=%02x p[i]=%02x p[i-1]=%02x\n",
-            s&0xff,r&0xff,div[s]&0xff,rem[s]&0xff,i,d[i]&0xff,p[i]&0xff,p[i-1]&0xff);       
-#endif  
+            s&0xff,r&0xff,div[s]&0xff,rem[s]&0xff,i,d[i]&0xff,p[i]&0xff,p[i-1]&0xff);
+#endif
         if( i!=0 )
         {
             s=r|(p[i-1]&(~mask));
             r=p[i-1]&(mask);
         }
     }
-     
+
     return r;
 }
- 
+
 int strPoly::genMulTab( strPoly& p )
 {
     int i,j,k;
@@ -592,7 +607,7 @@ int strPoly::genMulTab( strPoly& p )
     int myIndex=0;
     if( poly2Int( (UCHAR *)&myIndex )> 1 )
         return -1;
-#if 0       
+#if 0
     printf("A-myIndex=%02x %02x\n",myIndex,p.index[myIndex]);
     printf(" index:\n");
     for( i=0;i<256;i++ )
@@ -601,7 +616,7 @@ int strPoly::genMulTab( strPoly& p )
         if( (i%16)==15 )
             printf("\n");
     }
- 
+
     p.printPoly();
     printf("\n");
 #endif
@@ -610,7 +625,7 @@ int strPoly::genMulTab( strPoly& p )
         for( i=1;i<p.order;i++ )
             mulTab[i]=0;
         return 0;
-    }   
+    }
     myIndex = p.index[myIndex];
     for( i=1;i<=p.order;i++ )
     {
@@ -621,29 +636,29 @@ int strPoly::genMulTab( strPoly& p )
     }
     if( p.order==1 )
         mulTab[p.order]=1;
-    return p.order; 
+    return p.order;
 }
- 
-UCHAR strPoly::gmul( UCHAR i, UCHAR j ) 
+
+UCHAR strPoly::gmul( UCHAR i, UCHAR j )
 {
- 
+
     if( i==0 || j==0 )
         return 0;
     int res=index[i]+index[j];
     res%=order;
     return power[res];
-     
+
 }
- 
-UCHAR strPoly::ginv( UCHAR i ) 
+
+UCHAR strPoly::ginv( UCHAR i )
 {
- 
+
     if( i==0 )
         return 0;
     int res=order-index[i];
     res%=order;
     return power[res];
-     
+
 }
 
 
@@ -658,7 +673,7 @@ extern "C" int GP256_inv( int *a, int *b )
     UCHAR rb[32];
     int i;
     for( i=0;i<8;i++ )
-    {   
+    {
         ta.int2Poly(a[i]);
         x8.xk(i*32);
         ta.pmul(ta,x8);
@@ -674,14 +689,14 @@ extern "C" int GP256_inv( int *a, int *b )
     ta.printPoly();
     return result;
 }
- 
+
 extern "C" int GP256_mul( int *a, int *b, int *c )
 {
     strPoly ap,bp,ta,tb,x8,m,n,g256;
     UCHAR rb[32];
     int i;
     for( i=0;i<8;i++ )
-    {   
+    {
         ta.int2Poly(a[i]);
         x8.xk(i*32);
         ta.pmul(ta,x8);
@@ -701,20 +716,20 @@ extern "C" int GP256_mul( int *a, int *b, int *c )
     ap.printPoly();
     return ap.length;
 }
- 
+
 static void printMetrix( strPoly *m, int row, int col, int sr, int lr, int sc, int lc )
 {
-     
+
     int i,j;
     for( i=sc;i<sc+lc;i++ )
     {
         for( j=sr;j<sr+lr;j++ )
             printf("%3d ",m[i*row+j].length);
-        printf("\n");   
+        printf("\n");
     }
-    printf("\n");   
+    printf("\n");
 }
- 
+
 static int polyCheck( strPoly &a )
 {
     int r=0;
@@ -722,11 +737,11 @@ static int polyCheck( strPoly &a )
         r^=a.poly[i];
     return r;
 }
- 
+
 static int g256_inv( strPoly &a, strPoly &b )
 {
     strPoly ap,ta,m,n,g256,v;
-     
+
     g256.xk(256);
     g256.poly[0]=1;
     int result=ta.rdiv(a,g256,m,n);
@@ -736,9 +751,9 @@ static int g256_inv( strPoly &a, strPoly &b )
     ta.printPoly();
     b.copyPoly(n);
     return result;
- 
+
 }
- 
+
 extern "C" int GP256_matrix_guass( int c[], int row, int col, int bl, int pos, unsigned char *inv, unsigned char *ninv )
 {
     strPoly *metrix = new strPoly[(row+col)*col];
@@ -758,21 +773,21 @@ extern "C" int GP256_matrix_guass( int c[], int row, int col, int bl, int pos, u
         if( (count%1000) == 0 )
             printf("%d\n",count);
     }
- 
+
     for( i=0;i<pos;i++ )
     {
         for( j=i+1;j<col;j++ )
         {
             strPoly t,a,v;
             t.copyPoly(metrix[j*len+i]);
-            if( t.length==0 ) continue;             
+            if( t.length==0 ) continue;
             for( k=0;k<col+EXT;k++ )
             {
                 a.debug=0;
-                if( metrix[i*len+k].length==0 ) continue;               
+                if( metrix[i*len+k].length==0 ) continue;
                 a.pmul(metrix[i*len+k],t);
                 v.pdiv(a,g256);
-                metrix[j*len+k].padd(metrix[j*len+k],a);            
+                metrix[j*len+k].padd(metrix[j*len+k],a);
                 count++;
                 if( (count%1000) == 0 )
                     printf("%d %d %d %d\n",count,i,j,k);
@@ -788,7 +803,7 @@ printMetrix( metrix, len, col, 0, col, 0, col );
             ninv+=32;
         }
     }
- 
+
     for( i=pos;i<col;i++ )
     {
         strPoly t,ii,invii;
@@ -800,8 +815,8 @@ printMetrix( metrix, len, col, 0, col, 0, col );
         if( j==col+EXT )
         {
             printf("metrix can not inv\n");
-            return -1;      
-        }   
+            return -1;
+        }
         if( j!=i )
         {
             printf("swap %d %d\n",i,j);
@@ -831,13 +846,13 @@ printMetrix( metrix, len, col, 0, col, 0, col );
         {
             strPoly t,a,v;
             t.copyPoly(metrix[j*len+i]);
-            if( t.length==0 ) continue;         
+            if( t.length==0 ) continue;
             for( k=0;k<len;k++ )
             {
-                a.debug=0;              
+                a.debug=0;
                 a.pmul(metrix[i*len+k],t);
                 v.pdiv(a,g256);
-                metrix[j*len+k].padd(metrix[j*len+k],a);            
+                metrix[j*len+k].padd(metrix[j*len+k],a);
                 count++;
                 if( (count%1000) == 0 )
                     printf("%d\n",count);
@@ -850,13 +865,13 @@ printMetrix( metrix, len, col, 0, col, 0, col );
         for( j=pos;j<i;j++ )
         {
             strPoly t,a,v;
-            t.copyPoly(metrix[j*len+i]);            
+            t.copyPoly(metrix[j*len+i]);
             for( k=0;k<len;k++ )
             {
-                a.debug=0;              
+                a.debug=0;
                 a.pmul(metrix[i*len+k],t);
                 v.pdiv(a,g256);
-                metrix[j*len+k].padd(metrix[j*len+k],a);            
+                metrix[j*len+k].padd(metrix[j*len+k],a);
                 count++;
                 if( (count%1000) == 0 )
                     printf("%d\n",count);
@@ -875,5 +890,5 @@ printMetrix( metrix, len, col, 0, col, 0, col );
         }
     }
     return (col-pos)*(col-pos);
-} 
+}
 */
