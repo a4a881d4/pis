@@ -7,8 +7,9 @@ import (
 
 func TestNewXn( t *testing.T ) {
 	x := NewXn(1)
-	if big.NewInt(2).Cmp(&x) != 0 {
-		// x.Println()
+	y := big.Int(x)
+	x.Println("Println")
+	if big.NewInt(2).Cmp(&y) != 0 {
 		t.Error("xn = 1, no pass")
 	}
 }

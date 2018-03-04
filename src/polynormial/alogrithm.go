@@ -15,6 +15,7 @@ func NewXn(n int) poly {
 	return poly(*r)
 }
 
-func (x poly) Println() {
-	fmt.Println(x)
+func (x poly) Println(s string) {
+	y := big.Int(x)
+	fmt.Println(s,(&y).String())
 }
