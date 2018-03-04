@@ -3,9 +3,16 @@ package polynormail
 import (
 	"fmt"
 	"math/big"
+	"math/rand"
 )
 
 type Poly big.Int
+
+var polyRand *rand.Rand
+
+func init() {
+	polyRand = rand.New(rand.NewSource(1))
+}
 
 func NewXn(n int) Poly {
 	if n<0 {
@@ -16,6 +23,13 @@ func NewXn(n int) Poly {
 		r.Mul(r,big.NewInt(2))
 	}
 	return Poly(*r)
+}
+
+func NewRand(n int) Poly {
+	m := big.Int(NewXn(n))
+	v := big.NewInt(0)
+	v.Rand(polyRand,&m)
+	return Poly(*v)
 }
 
 func (x *Poly) Println(s string) {
@@ -59,20 +73,17 @@ func (x *Poly) PrintPoly() {
 	fmt.Println()
 }
 
-func (x *Poly) Copy(y *Poly) {
-	var _x, _y = big.Int(*x), big.Int(*y)
-	(&_x).SetBytes((&_y).Bytes())
-}
-
 func NewPoly(y *Poly) Poly {
-	x := NewXn(0)
-	x.Copy(y)
-	return x
+	x := big.NewInt(0)
+	z := big.Int(*y)
+	x.SetBytes((&z).Bytes())
+	return Poly(*x)
 }
 
-func (x *Poly) Add(y *Poly) {
+func (x *Poly) Add(y *Poly) *Poly {
 	var _x, _y = big.Int(*x), big.Int(*y)
-	(&_x).Xor(&_x,&_y)
+	r := (&_x).Xor(&_x,&_y)
+	return &(Poly(*r))
 }
 
 /*
