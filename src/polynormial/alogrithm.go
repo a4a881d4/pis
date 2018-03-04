@@ -6,7 +6,7 @@ import (
 	"math/rand"
 )
 
-const PrimeSize = (1 << 15)
+const PrimeSize = 10000
 
 type Poly struct {
 	p big.Int
@@ -17,7 +17,7 @@ var Prime []*Poly
 
 func init() {
 	polyRand = rand.New(rand.NewSource(1))
-	Prime = FindPrime(25)
+	Prime = FindPrime(18)
 }
 
 func NewXn(n int) *Poly {
@@ -154,7 +154,7 @@ func FindPrime(n int) []*Poly {
 			if cnt < PrimeSize {
 				r[cnt] = &Poly{p: *big.NewInt(i)}
 				if cnt%1024 == 0 {
-					fmt.Print("*")
+					r[cnt].Println(fmt.Sprintf("%2d", cnt/1024))
 				}
 				cnt++
 			} else {
