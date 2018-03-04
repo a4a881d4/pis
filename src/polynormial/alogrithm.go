@@ -35,7 +35,7 @@ func NewRand(n int) *Poly {
 }
 
 func (x *Poly) Println(s string) {
-	fmt.Println(s, (&x.p).String())
+	fmt.Println(s, (&x.p).Text(16))
 }
 
 func (x *Poly) Order() int {
@@ -43,7 +43,7 @@ func (x *Poly) Order() int {
 	i := 0
 	r := big.NewInt(1)
 	for {
-		if r.Cmp(&y) < 0 {
+		if r.Cmp(&y) <= 0 {
 			i += 1
 			r.Mul(r, big.NewInt(2))
 		} else {
@@ -89,7 +89,8 @@ func (z *Poly) Add(x, y *Poly) *Poly {
 func (z *Poly) Mul(x, y *Poly) *Poly {
 	s := big.NewInt(0)
 	o := y.Order()
-	ix, iy := x.p, y.p
+	vx := NewPoly(x)
+	ix, iy := vx.p, y.p
 	px, py := &ix, &iy
 	for i := 0; i <= o; i++ {
 		if py.Bit(i) != 0 {
@@ -99,6 +100,64 @@ func (z *Poly) Mul(x, y *Poly) *Poly {
 	}
 	z.p = *s
 	return z
+}
+
+func (a *Poly) DivRem(b *Poly) *Poly {
+	oa := a.Order()
+	ob := b.Order()
+	r := big.NewInt(0)
+	d := big.NewInt(0)
+	if oa < ob {
+		return &Poly{p: *r}
+	}
+	or := uint(oa - ob)
+	d.Lsh(&b.p, or)
+	pa := &a.p
+	for i := 0; i < int(or+1); i++ {
+		r.Lsh(r, 1)
+		if pa.Bit(oa-i-1) != 0 {
+			pa.Xor(pa, d)
+			r.Xor(r, big.NewInt(1))
+		}
+		d.Rsh(d, 1)
+	}
+	return &Poly{p: *r}
+}
+
+func FindPrime(n int) []*Poly {
+	max := &(NewXn(n/2 + 1).p)
+	r := make([]*Poly, 1024)
+	cnt := 1
+	r[0] = &Poly{p: *big.NewInt(2)}
+	i := int64(3)
+	for i < (int64(1) << uint(n)) {
+		find := 0
+		for _, d := range r[:cnt] {
+			s := &Poly{p: *big.NewInt(i)}
+			// s.Println("as")
+			s.DivRem(d)
+			// s.Println("bs")
+			// d.Println("d")
+			if (&s.p).Sign() == 0 {
+				find = 1
+				break
+			}
+			if max.Cmp(&d.p) < 0 {
+				break
+			}
+		}
+		if find == 0 {
+			if cnt < 1024 {
+				r[cnt] = &Poly{p: *big.NewInt(i)}
+				// r[cnt].Println("find:")
+				cnt++
+			} else {
+				break
+			}
+		}
+		i++
+	}
+	return r[:cnt]
 }
 
 /*

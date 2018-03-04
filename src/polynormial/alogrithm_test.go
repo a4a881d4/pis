@@ -57,3 +57,53 @@ func TestMul(t *testing.T) {
 		t.Error("Mul, no pass")
 	}
 }
+
+func TestDivRem(t *testing.T) {
+	x := NewRand(20)
+	x.Println("x")
+	y := NewRand(20)
+	y.Println("y")
+	z := NewRand(5)
+	z.Println("z")
+	s := NewXn(0)
+	s.Add(s.Mul(x, y), z)
+	s.Println("s")
+	f := s.DivRem(y)
+	if (&z.p).Cmp(&s.p) != 0 {
+		t.Error("Rem, no pass")
+	}
+	if (&f.p).Cmp(&x.p) != 0 {
+		f.Println("d")
+		x.Println("x")
+		t.Error("Div, no pass")
+	}
+}
+
+func TestFindPrime(t *testing.T) {
+	r := FindPrime(10)
+	x := NewXn(0)
+	for _, d := range r {
+		o := d.Order()
+		if o == 2 || o == 8 {
+			x.Mul(x, d)
+		}
+	}
+	x.PrintPoly()
+	xt := NewXn(0)
+	xt.Add(NewXn(128), NewXn(1))
+	if (&x.p).Cmp(&xt.p) != 0 {
+		t.Error("128, no pass")
+	}
+	x = NewXn(0)
+	for _, d := range r {
+		o := d.Order()
+		if o == 2 || o == 3 || o == 5 || o == 9 {
+			x.Mul(x, d)
+		}
+	}
+	x.PrintPoly()
+	xt.Add(NewXn(256), NewXn(1))
+	if (&x.p).Cmp(&xt.p) != 0 {
+		t.Error("256, no pass")
+	}
+}
