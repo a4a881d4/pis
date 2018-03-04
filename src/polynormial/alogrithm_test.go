@@ -1,6 +1,7 @@
 package polynormail
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 )
@@ -105,5 +106,20 @@ func TestFindPrime(t *testing.T) {
 	xt.Add(NewXn(256), NewXn(1))
 	if (&x.p).Cmp(&xt.p) != 0 {
 		t.Error("256, no pass")
+	}
+}
+
+func TestFactorize(t *testing.T) {
+	xt := NewXn(0)
+	xt.Add(NewXn(258), NewXn(1))
+	r := xt.Factorize()
+	x := NewXn(0)
+	for inx, p := range r {
+		p.Println(fmt.Sprintf("Factor(%2d): ", inx))
+		x.Mul(x, p)
+	}
+	Prime[len(Prime)-1].Println("Last Prime:")
+	if (&x.p).Cmp(&xt.p) != 0 {
+		t.Error("256 Fractorize, no pass")
 	}
 }

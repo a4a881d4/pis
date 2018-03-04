@@ -6,14 +6,18 @@ import (
 	"math/rand"
 )
 
+const PrimeSize = (1 << 15)
+
 type Poly struct {
 	p big.Int
 }
 
 var polyRand *rand.Rand
+var Prime []*Poly
 
 func init() {
 	polyRand = rand.New(rand.NewSource(1))
+	Prime = FindPrime(25)
 }
 
 func NewXn(n int) *Poly {
@@ -126,7 +130,7 @@ func (a *Poly) DivRem(b *Poly) *Poly {
 
 func FindPrime(n int) []*Poly {
 	max := &(NewXn(n/2 + 1).p)
-	r := make([]*Poly, 1024)
+	r := make([]*Poly, PrimeSize)
 	cnt := 1
 	r[0] = &Poly{p: *big.NewInt(2)}
 	i := int64(3)
@@ -147,9 +151,11 @@ func FindPrime(n int) []*Poly {
 			}
 		}
 		if find == 0 {
-			if cnt < 1024 {
+			if cnt < PrimeSize {
 				r[cnt] = &Poly{p: *big.NewInt(i)}
-				// r[cnt].Println("find:")
+				if cnt%1024 == 0 {
+					fmt.Print("*")
+				}
 				cnt++
 			} else {
 				break
@@ -159,6 +165,37 @@ func FindPrime(n int) []*Poly {
 	}
 	return r[:cnt]
 }
+
+func (a *Poly) Factorize() []*Poly {
+	d := NewPoly(a)
+	r := make([]*Poly, PrimeSize)
+	cnt := 0
+	for _, p := range Prime {
+		for {
+			s := NewPoly(d)
+			m := s.DivRem(p)
+			if (&s.p).Sign() == 0 {
+				r[cnt] = p
+				cnt++
+				d = m
+			} else {
+				break
+			}
+		}
+		if d.Order() < p.Order() {
+			break
+		}
+	}
+	if (&d.p).Sign() != 0 {
+		r[cnt] = d
+		cnt++
+	}
+	return r[:cnt]
+}
+
+// func (a *Poly) Rdiv(b *Poly) (*Poly, *Poly) {
+//     dl
+// }
 
 /*
 
