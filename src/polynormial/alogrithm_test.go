@@ -1,4 +1,4 @@
-package polynormail
+package polynormal
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ func TestCopy(t *testing.T) {
 	x := NewRand(256)
 	y := x.p
 	x.PrintPoly()
-	z := NewPoly(x)
+	z := x.NewPoly()
 	z.PrintPoly()
 	iZ := z.p
 	if (&y).Cmp(&iZ) != 0 {
@@ -36,7 +36,7 @@ func TestAdd(t *testing.T) {
 	z.Xor(&iX, &iY)
 	x.PrintPoly()
 	y.PrintPoly()
-	pz := NewPoly(x)
+	pz := x.NewPoly()
 	az := pz.Add(pz, y)
 	iPz := az.p
 	pz.PrintPoly()
@@ -111,14 +111,14 @@ func TestFindPrime(t *testing.T) {
 
 func TestFactorize(t *testing.T) {
 	xt := NewXn(0)
-	xt.Add(NewXn(258), NewXn(1))
+	xt.Add(NewXn(128), NewXn(1))
 	r := xt.Factorize()
 	x := NewXn(0)
 	for inx, p := range r {
 		p.Println(fmt.Sprintf("Factor(%2d): ", inx))
 		x.Mul(x, p)
 	}
-	Prime[len(Prime)-1].Println("Last Prime:")
+	Primes[len(Primes)-1].Println("Last Prime:")
 	if (&x.p).Cmp(&xt.p) != 0 {
 		t.Error("256 Fractorize, no pass")
 	}
