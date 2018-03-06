@@ -33,7 +33,15 @@ func (x *Prime) NewPrime() *Prime {
 	return r
 }
 
+func (x *Prime) Check() {
+	vx := x.ToPoly()
+	ps := vx.Factorize()
+	for _, p := range ps {
+		p.Println("x: ")
+	}
+}
 func (x *Prime) genTable() {
+	x.Check()
 	order := int64(x.Order())
 	size := (int64(1) << uint(order-1))
 	// div := make([]int64, size)
@@ -44,7 +52,7 @@ func (x *Prime) genTable() {
 	for i := int64(0); i < size-1; i++ {
 		power[i] = a
 		idx[a] = i
-		fmt.Println("idx", idx[a], a, i)
+		// fmt.Println("idx", idx[a], a, i)
 		a <<= 1
 		if (a>>uint(order-1))&1 == 1 {
 			a ^= x.poly
