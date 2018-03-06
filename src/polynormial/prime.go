@@ -93,15 +93,23 @@ func (x *Prime) Div(a, b int64) int64 {
 	if b == 0 || b >= (x.size-1) {
 		return 0
 	}
-
-	return x.power[(x.index[a]+(x.size-1)-x.index[b])%(x.size-1)]
+	if x.indexable {
+		return x.power[(x.index[a]+(x.size-1)-x.index[b])%(x.size-1)]
+	} else {
+		return x.Mul(a, x.Inv(b))
+	}
 }
 
 func (x *Prime) Inv(a int64) int64 {
 	if a <= 0 || a >= (x.size-1) {
 		return 0
 	}
-	return x.power[(x.size-1)-x.index[a]]
+	if x.indexable {
+		return x.power[(x.size-1)-x.index[a]]
+	} else {
+		_, n, _ := x.ToPoly().Euclidean(NewPolyInt64(a))
+		return n.p.Int64()
+	}
 }
 func (x *Prime) Dump() {
 	fmt.Println("Dump PrimPoly")

@@ -74,3 +74,24 @@ func TestP258Euclidean(t *testing.T) {
 		}
 	}
 }
+
+func TestP2048Inv(t *testing.T) {
+	prime := P2048[0]
+	a := NewRand(int(prime.order) - 1)
+	c := prime.Inv(a.p.Int64())
+	if prime.Mul(a.p.Int64(), c) != 1 {
+		t.Error("P2048 Inv, no pass")
+	}
+}
+
+// func TestP2048Factor(t *testing.T) {
+// 	v := NewXn(0)
+// 	v.Add(NewXn(2048), NewXn(1))
+// 	ps := v.Factorize()
+// 	for _, p := range ps {
+// 		fmt.Printf("\t0x%s,\n", p.p.Text(16))
+// 	}
+// 	if len(ps)-3 != 2046/11 {
+// 		t.Error("P2048 Factor, no pass")
+// 	}
+// }
