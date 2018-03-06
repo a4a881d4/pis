@@ -31,6 +31,11 @@ func NewXn(n int) *Poly {
 	return &Poly{p: *r}
 }
 
+func NewPolyInt64(n int64) *Poly {
+	r := big.NewInt(n)
+	return &Poly{p: *r}
+}
+
 func NewRand(n int) *Poly {
 	m := NewXn(n).p
 	v := big.NewInt(0)
@@ -85,7 +90,7 @@ func (y *Poly) NewPoly() *Poly {
 }
 
 func (z *Poly) Add(x, y *Poly) *Poly {
-	r := (&z.p).Xor(&x.p, &y.p)
+	r := z.p.Xor(&x.p, &y.p)
 	z.p = *r
 	return z
 }
@@ -150,9 +155,6 @@ func FindPrime(n int) []*Poly {
 		if find == 0 {
 			if cnt < PrimeSize {
 				r[cnt] = &Poly{p: *big.NewInt(i)}
-				if cnt%1024 == 0 {
-					r[cnt].Println(fmt.Sprintf("%2d", cnt/1024))
-				}
 				cnt++
 			} else {
 				break
@@ -183,9 +185,47 @@ func (a *Poly) Factorize() []*Poly {
 			break
 		}
 	}
-	if (&d.p).Sign() != 0 {
+	if d.p.Sign() != 0 {
 		r[cnt] = d
 		cnt++
 	}
 	return r[:cnt]
+}
+
+func (x *Poly) Euclidean(y *Poly) (*Poly, *Poly, *Poly) {
+	a := make([]*Poly, 0, PrimeSize)
+	b := make([]*Poly, 0, PrimeSize)
+	swap := false
+	if x.Order() >= y.Order() {
+		a = append(a, x.NewPoly())
+		a = append(a, y.NewPoly())
+	} else {
+		a = append(a, y.NewPoly())
+		a = append(a, x.NewPoly())
+		swap = true
+	}
+	for i := 0; i < PrimeSize; i++ {
+		a = append(a, a[i].NewPoly())
+		v := a[i+2].DivRem(a[i+1])
+		b = append(b, v)
+		if a[i+2].p.Sign() == 0 {
+			break
+		}
+	}
+	r := a[len(a)-2].NewPoly()
+	m := NewXn(0)
+	n := b[len(b)-2].NewPoly()
+	for i := len(b) - 3; i >= 0; i-- {
+		t := n.NewPoly()
+		// fmt.Println(i)
+		// m.Println("m")
+		// n.Println("n")
+		// fmt.Println("--------------")
+		m, n = n, t.Mul(t, b[i]).Add(t, m)
+	}
+	if swap {
+		return n, m, r
+	} else {
+		return m, n, r
+	}
 }

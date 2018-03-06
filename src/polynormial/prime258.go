@@ -23,6 +23,6 @@ var P258 []*Prime
 func init() {
 	P258 = make([]*Prime, len(poly258))
 	for i, p := range poly258 {
-		P258[i] = NewPrime(p)
+		P258[i] = NewPrime(p, false)
 	}
 }
