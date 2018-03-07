@@ -1,7 +1,7 @@
 package polynormal
 
 import (
-	_ "fmt"
+	"fmt"
 	_ "math/big"
 	"testing"
 )
@@ -84,9 +84,32 @@ func TestP2048Inv(t *testing.T) {
 	}
 }
 
-func TestP2048AS(t *testing.T) {
+func TestP128AS(t *testing.T) {
+	base := NewPolyBase(P128)
+	x := NewRand(126)
+	a := base.Analysis(x)
+	for i, ai := range a {
+		ax := x.NewPoly()
+		ax.DivRem(P128[i].ToPoly())
+		if ax.p.Int64() != ai {
+			t.Error("P128 Analysis, no pass")
+		}
+	}
+	r := base.Synthesize(a)
+	if r.p.Cmp(&x.p) != 0 {
+		r.Println("r")
+		x.Println("x")
+		t.Error("P128 Synthesize, no pass")
+	}
+}
+
+func checkP2048Basis(n int, t *testing.T) {
 	base := NewPolyBase(P2048)
-	x := NewRand(64)
+	y := NewXn(0)
+	for i := 0; i < len(P2048); i++ {
+		y.Mul(y, P2048[i].ToPoly())
+	}
+	x := y.DivRem(P2048[n].ToPoly())
 	a := base.Analysis(x)
 	for i, ai := range a {
 		ax := x.NewPoly()
@@ -96,9 +119,37 @@ func TestP2048AS(t *testing.T) {
 		}
 	}
 	r := base.Synthesize(a)
-	r.Println("r")
-	x.Println("x")
 	if r.p.Cmp(&x.p) != 0 {
+		r.Println("r")
+		x.Println("x")
+		NewPolyInt64(a[n]).Println("ai")
+		fmt.Println("n", n)
+		t.Error("P2048 Synthesize, no pass")
+	}
+}
+
+func TestP2048Basis(t *testing.T) {
+	testcase := [...]int{43, 64, 102, 173}
+	for _, n := range testcase {
+		checkP2048Basis(n, t)
+	}
+}
+
+func TestP2048AS(t *testing.T) {
+	base := NewPolyBase(P2048)
+	x := NewRand(2000)
+	a := base.Analysis(x)
+	for i, ai := range a {
+		ax := x.NewPoly()
+		ax.DivRem(P2048[i].ToPoly())
+		if ax.p.Int64() != ai {
+			t.Error("P2048 Analysis, no pass")
+		}
+	}
+	r := base.Synthesize(a)
+	if r.p.Cmp(&x.p) != 0 {
+		r.Println("r")
+		x.Println("x")
 		t.Error("P2048 Synthesize, no pass")
 	}
 }

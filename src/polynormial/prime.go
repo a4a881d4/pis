@@ -130,10 +130,26 @@ func (x *Prime) Dump() {
 
 type PolyBase struct {
 	basisPoly []*Prime
+	products  *Poly
+	bi        []*Poly
 }
 
 func NewPolyBase(b []*Prime) *PolyBase {
-	return &PolyBase{basisPoly: b}
+	products := NewXn(0)
+	for _, p := range b {
+		products.Mul(products, p.ToPoly())
+	}
+	r := make([]*Poly, len(b))
+	for i, p := range b {
+		ps := products.NewPoly()
+		r[i] = ps.DivRem(p.ToPoly())
+		pi := r[i].NewPoly()
+		pi.DivRem(p.ToPoly())
+		_, n, _ := p.ToPoly().Euclidean(pi)
+		r[i].Mul(r[i], n)
+		r[i].DivRem(products)
+	}
+	return &PolyBase{basisPoly: b, products: products, bi: r}
 }
 
 func (b *PolyBase) Analysis(x *Poly) []int64 {
@@ -149,20 +165,11 @@ func (b *PolyBase) Analysis(x *Poly) []int64 {
 }
 
 func (b *PolyBase) Synthesize(f []int64) *Poly {
-	products := NewXn(0)
-	for _, p := range b.basisPoly {
-		products.Mul(products, p.ToPoly())
-	}
-	if len(f) != len(b.basisPoly) {
-		return NewXn(0)
-	}
 	r := NewPolyInt64(0)
-	for i, p := range b.basisPoly {
-		x := NewPolyInt64(f[i])
-		ps := products.NewPoly()
-		pi := ps.DivRem(p.ToPoly())
-		r.Add(r, x.Mul(x, pi))
+	for i, fi := range f {
+		x := NewPolyInt64(fi)
+		r.Add(r, x.Mul(x, b.bi[i]))
 	}
-	r.DivRem(products)
+	r.DivRem(b.products)
 	return r
 }
