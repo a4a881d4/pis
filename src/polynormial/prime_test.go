@@ -137,19 +137,21 @@ func TestP2048Basis(t *testing.T) {
 
 func TestP2048AS(t *testing.T) {
 	base := NewPolyBase(P2048)
-	x := NewRand(2000)
-	a := base.Analysis(x)
-	for i, ai := range a {
-		ax := x.NewPoly()
-		ax.DivRem(P2048[i].ToPoly())
-		if ax.p.Int64() != ai {
-			t.Error("P2048 Analysis, no pass")
+	for n := 0; n < 32; n++ {
+		x := NewRand(2000)
+		a := base.Analysis(x)
+		for i, ai := range a {
+			ax := x.NewPoly()
+			ax.DivRem(P2048[i].ToPoly())
+			if ax.p.Int64() != ai {
+				t.Error("P2048 Analysis, no pass")
+			}
 		}
-	}
-	r := base.Synthesize(a)
-	if r.p.Cmp(&x.p) != 0 {
-		r.Println("r")
-		x.Println("x")
-		t.Error("P2048 Synthesize, no pass")
+		r := base.Synthesize(a)
+		if r.p.Cmp(&x.p) != 0 {
+			r.Println("r")
+			x.Println("x")
+			t.Error("P2048 Synthesize, no pass")
+		}
 	}
 }

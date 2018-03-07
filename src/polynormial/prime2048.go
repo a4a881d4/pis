@@ -192,7 +192,15 @@ var P2048 []*Prime
 
 func init() {
 	P2048 = make([]*Prime, len(poly2048))
+	indexable := make([]bool, len(poly2048))
+	for i := 0; i < len(poly2048); i++ {
+		indexable[i] = true
+	}
+	np := [...]int{43, 64, 102, 173}
+	for _, n := range np {
+		indexable[n] = false
+	}
 	for i, p := range poly2048 {
-		P2048[i] = NewPrime(p, true)
+		P2048[i] = NewPrime(p, indexable[i])
 	}
 }

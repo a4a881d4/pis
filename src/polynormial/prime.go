@@ -105,7 +105,11 @@ func (x *Prime) Inv(a int64) int64 {
 		return 0
 	}
 	if x.indexable {
-		return x.power[(x.size-1)-x.index[a]]
+		if x.index[a] != 0 {
+			return x.power[(x.size-1)-x.index[a]]
+		} else {
+			return 1
+		}
 	} else {
 		_, n, _ := x.ToPoly().Euclidean(NewPolyInt64(a))
 		return n.p.Int64()
@@ -145,8 +149,7 @@ func NewPolyBase(b []*Prime) *PolyBase {
 		r[i] = ps.DivRem(p.ToPoly())
 		pi := r[i].NewPoly()
 		pi.DivRem(p.ToPoly())
-		_, n, _ := p.ToPoly().Euclidean(pi)
-		r[i].Mul(r[i], n)
+		r[i].Mul(r[i], NewPolyInt64(p.Inv(pi.p.Int64())))
 		r[i].DivRem(products)
 	}
 	return &PolyBase{basisPoly: b, products: products, bi: r}
@@ -157,8 +160,17 @@ func (b *PolyBase) Analysis(x *Poly) []int64 {
 	for j := 0; j < x.Order(); j++ {
 		if x.p.Bit(j) == 1 {
 			for i, p := range b.basisPoly {
-				r[i] ^= p.power[j]
+				if p.indexable {
+					r[i] ^= p.power[j]
+				}
 			}
+		}
+	}
+	for i, p := range b.basisPoly {
+		if !p.indexable {
+			vx := x.NewPoly()
+			vx.DivRem(p.ToPoly())
+			r[i] = vx.p.Int64()
 		}
 	}
 	return r
