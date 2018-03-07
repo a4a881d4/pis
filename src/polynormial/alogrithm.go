@@ -217,10 +217,6 @@ func (x *Poly) Euclidean(y *Poly) (*Poly, *Poly, *Poly) {
 	n := b[len(b)-2].NewPoly()
 	for i := len(b) - 3; i >= 0; i-- {
 		t := n.NewPoly()
-		// fmt.Println(i)
-		// m.Println("m")
-		// n.Println("n")
-		// fmt.Println("--------------")
 		m, n = n, t.Mul(t, b[i]).Add(t, m)
 	}
 	if swap {

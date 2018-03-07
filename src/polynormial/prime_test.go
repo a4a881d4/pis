@@ -84,14 +84,21 @@ func TestP2048Inv(t *testing.T) {
 	}
 }
 
-// func TestP2048Factor(t *testing.T) {
-// 	v := NewXn(0)
-// 	v.Add(NewXn(2048), NewXn(1))
-// 	ps := v.Factorize()
-// 	for _, p := range ps {
-// 		fmt.Printf("\t0x%s,\n", p.p.Text(16))
-// 	}
-// 	if len(ps)-3 != 2046/11 {
-// 		t.Error("P2048 Factor, no pass")
-// 	}
-// }
+func TestP2048AS(t *testing.T) {
+	base := NewPolyBase(P2048)
+	x := NewRand(64)
+	a := base.Analysis(x)
+	for i, ai := range a {
+		ax := x.NewPoly()
+		ax.DivRem(P2048[i].ToPoly())
+		if ax.p.Int64() != ai {
+			t.Error("P2048 Analysis, no pass")
+		}
+	}
+	r := base.Synthesize(a)
+	r.Println("r")
+	x.Println("x")
+	if r.p.Cmp(&x.p) != 0 {
+		t.Error("P2048 Synthesize, no pass")
+	}
+}

@@ -136,7 +136,7 @@ func NewPolyBase(b []*Prime) *PolyBase {
 	return &PolyBase{basisPoly: b}
 }
 
-func (b *PolyBase) Project(x *Poly) []int64 {
+func (b *PolyBase) Analysis(x *Poly) []int64 {
 	r := make([]int64, len(b.basisPoly))
 	for j := 0; j < x.Order(); j++ {
 		if x.p.Bit(j) == 1 {
@@ -145,5 +145,24 @@ func (b *PolyBase) Project(x *Poly) []int64 {
 			}
 		}
 	}
+	return r
+}
+
+func (b *PolyBase) Synthesize(f []int64) *Poly {
+	products := NewXn(0)
+	for _, p := range b.basisPoly {
+		products.Mul(products, p.ToPoly())
+	}
+	if len(f) != len(b.basisPoly) {
+		return NewXn(0)
+	}
+	r := NewPolyInt64(0)
+	for i, p := range b.basisPoly {
+		x := NewPolyInt64(f[i])
+		ps := products.NewPoly()
+		pi := ps.DivRem(p.ToPoly())
+		r.Add(r, x.Mul(x, pi))
+	}
+	r.DivRem(products)
 	return r
 }
