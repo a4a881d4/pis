@@ -63,8 +63,19 @@ func (x *Prime) genTable() {
 	}
 	x.order = order
 	x.size = size
+	x.checkTable()
 }
-
+func (x *Prime) checkTable() {
+	for k, a := range x.index {
+		if a == 0 && k != 1 {
+			for i := 0; i < 32; i++ {
+				fmt.Printf("%03x ", x.index[i])
+			}
+			x.ToPoly().Println("Prime")
+			break
+		}
+	}
+}
 func (x *Prime) Add(a, b int64) int64 {
 	return (a ^ b)
 }

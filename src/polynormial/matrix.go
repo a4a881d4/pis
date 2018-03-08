@@ -62,29 +62,34 @@ func (p *PMatrix) PrintMatrix(s string) {
 }
 
 func (p *PMatrix) SelectMajor(i, j, n int, col []int) {
-	if i >= p.N || n >= p.N {
+	if j >= p.N || n >= p.N {
 		return
 	}
-	if j >= p.M || n >= p.M {
+	if i >= p.M || n >= p.M {
 		return
 	}
+	// fmt.Println("Select", i, j, n, p.Get(j, i), p.Get(i, j), p.Get(n, n))
 	if j != n {
-		col[n], col[j] = col[j], col[n]
-		for l := 0; l < p.N; l++ {
-			p.A[l*p.M+n], p.A[l*p.M+j] = p.A[l*p.M+j], p.A[l*p.M+n]
+		for l := 0; l < p.M; l++ {
+			p.A[n*p.M+l], p.A[j*p.M+l] = p.A[j*p.M+l], p.A[n*p.M+l]
 		}
 	}
 	if i != n {
-		for l := 0; l > p.M; l++ {
-			p.A[i*p.M+l], p.A[n*p.M+l] = p.A[n*p.M+l], p.A[i*p.M+l]
+		col[n], col[i] = col[i], col[n]
+		for l := 0; l < p.N; l++ {
+			p.A[l*p.M+n], p.A[l*p.M+i] = p.A[l*p.M+i], p.A[l*p.M+n]
 		}
 	}
+	// if p.Get(n, n) == 0 {
+	// 	fmt.Println("After Select", i, j, n, p.Get(j, i), p.Get(i, j), p.Get(n, n))
+	// 	p.PrintMatrix("P")
+	// }
 }
 
 func (p *PMatrix) FindMajor(n int) (int, int, bool) {
 	for i := n; i < p.N; i++ {
 		for j := n; j < p.N; j++ {
-			if p.A[j*p.M+i] != 0 {
+			if p.Get(i, j) != 0 {
 				return i, j, true
 			}
 		}
@@ -126,6 +131,9 @@ func (g *PMatrix) Guass(v bool) (*PMatrix, bool) {
 				g.A[j*g.M+n] = g.p.Add(g.A[j*g.M+n], g.p.Mul(g.A[j*g.M+n], g.A[n*g.M+n]))
 			}
 		}
+	}
+	if v {
+		g.PrintMatrix("G")
 	}
 	r := g.p.NewMatrixInt64(g.M-g.N, g.N, make([]int64, (g.M-g.N)*g.N))
 	for i := 0; i < g.N; i++ {

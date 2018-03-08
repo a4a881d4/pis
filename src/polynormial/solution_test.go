@@ -1,7 +1,8 @@
 package polynormal
 
 import (
-	_ "fmt"
+	"crypto/sha256"
+	"fmt"
 	"testing"
 )
 
@@ -19,6 +20,20 @@ func TestP128Solution5X4(t *testing.T) {
 	}
 }
 
+func TestP256Solution5X4(t *testing.T) {
+	m := make([]int, 20)
+	for i := 0; i < 20; i++ {
+		m[i] = polyRand.Intn(255)
+	}
+	base := NewPolyBase(P256)
+	b, x := base.Solution(5, 4, 10, m)
+	for i := 0; i < 4; i++ {
+		if !b.CheckSolution(0xff, x, m[i*5:i*5+5]) {
+			t.Error("P256 Solution, no pass")
+		}
+	}
+}
+
 func TestSign256(t *testing.T) {
 	messageString := [...]string{
 		"a4a881d4",
@@ -32,6 +47,26 @@ func TestSign256(t *testing.T) {
 		"nobody owns or controls Bitcoin and everyone can take part",
 		"Through many of its unique properties",
 		"Bitcoin allows exciting uses that could not be covered by any previous payment system",
-		""
+		"end"}
+	message := make([][32]byte, len(messageString))
+	for k, s := range messageString {
+		message[k] = sha256.Sum256([]byte(s))
 	}
+	for i := 0; i < 1024; i++ {
+		for k, s := range message {
+			message[k] = sha256.Sum256(s[:])
+		}
+		sign := NewSign256(message)
+		for k, m := range message {
+			if !sign.Check256(m) {
+				fmt.Printf("%x\n", m)
+				Check256(message)
+				t.Error(messageString[k], " Check, no pass")
+			}
+			if sign.Gen.Order() != 97 {
+				t.Error("miss order")
+			}
+		}
+	}
+
 }

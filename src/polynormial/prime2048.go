@@ -1,5 +1,17 @@
 package polynormal
 
+/*
+8c3
+937
+9ef
+ae3
+c31
+c75
+dff
+ec9
+f79
+
+*/
 var poly2048 = [...]int64{
 	0x805,
 	0x817,
@@ -15,7 +27,7 @@ var poly2048 = [...]int64{
 	0x89f,
 	0x8a9,
 	0x8b1,
-	0x8c3,
+	// 0x8c3,
 	0x8cf,
 	0x8d1,
 	0x8e1,
@@ -26,7 +38,7 @@ var poly2048 = [...]int64{
 	0x913,
 	0x925,
 	0x929,
-	0x937,
+	// 0x937,
 	0x93b,
 	0x93d,
 	0x945,
@@ -44,7 +56,7 @@ var poly2048 = [...]int64{
 	0x9c7,
 	0x9d9,
 	0x9e5,
-	0x9ef,
+	// 0x9ef,
 	0x9f7,
 	0xa01,
 	0xa07,
@@ -65,7 +77,7 @@ var poly2048 = [...]int64{
 	0xab5,
 	0xad5,
 	0xadf,
-	0xae3,
+	// 0xae3,
 	0xae9,
 	0xaef,
 	0xaf1,
@@ -98,12 +110,12 @@ var poly2048 = [...]int64{
 	0xc0d,
 	0xc19,
 	0xc1f,
-	0xc31,
+	// 0xc31,
 	0xc57,
 	0xc61,
 	0xc6b,
 	0xc73,
-	0xc75,
+	// 0xc75,
 	0xc85,
 	0xc89,
 	0xc97,
@@ -141,7 +153,7 @@ var poly2048 = [...]int64{
 	0xde1,
 	0xde7,
 	0xdf5,
-	0xdff,
+	// 0xdff,
 	0xe05,
 	0xe1d,
 	0xe21,
@@ -161,7 +173,7 @@ var poly2048 = [...]int64{
 	0xe9f,
 	0xea3,
 	0xebb,
-	0xec9,
+	// 0xec9,
 	0xecf,
 	0xedd,
 	0xef3,
@@ -174,7 +186,7 @@ var poly2048 = [...]int64{
 	0xf6b,
 	0xf6d,
 	0xf75,
-	0xf79,
+	// 0xf79,
 	0xf83,
 	0xf91,
 	0xf97,
@@ -185,22 +197,24 @@ var poly2048 = [...]int64{
 	0xfcd,
 	0xfd3,
 	0xfe5,
-	0xfe9,
-	0xffb}
+	0xfe9}
+
+// ,
+// 0xffb}
 
 var P2048 []*Prime
 
 func init() {
 	P2048 = make([]*Prime, len(poly2048))
-	indexable := make([]bool, len(poly2048))
-	for i := 0; i < len(poly2048); i++ {
-		indexable[i] = true
-	}
-	np := [...]int{43, 64, 102, 173}
-	for _, n := range np {
-		indexable[n] = false
-	}
+	// indexable := make([]bool, len(poly2048))
+	// for i := 0; i < len(poly2048); i++ {
+	// 	indexable[i] = true
+	// }
+	// np := [...]int{43, 64, 102, 173}
+	// for _, n := range np {
+	// 	indexable[n] = false
+	// }
 	for i, p := range poly2048 {
-		P2048[i] = NewPrime(p, indexable[i])
+		P2048[i] = NewPrime(p, true)
 	}
 }
