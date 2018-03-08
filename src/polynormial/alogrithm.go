@@ -36,6 +36,12 @@ func NewPolyInt64(n int64) *Poly {
 	return &Poly{p: *r}
 }
 
+func NewPolyInt(n big.Int) *Poly {
+	r := big.NewInt(0)
+	r.SetBytes(n.Bytes())
+	return &Poly{p: *r}
+}
+
 func NewRand(n int) *Poly {
 	m := NewXn(n).p
 	v := big.NewInt(0)

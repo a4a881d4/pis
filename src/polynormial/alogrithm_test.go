@@ -99,6 +99,20 @@ func TestFactorize(t *testing.T) {
 		x.Mul(x, p)
 	}
 	if x.p.Cmp(&xt.p) != 0 {
+		t.Error("128 Fractorize, no pass")
+	}
+}
+
+func TestFactorizeP256(t *testing.T) {
+	xt := NewXn(0)
+	xt.Add(NewXn(256), NewXn(1))
+	r := xt.Factorize()
+	x := NewXn(0)
+	for _, p := range r {
+		x.Mul(x, p)
+		// fmt.Printf("\t0x%x,\n",p.p.Int64())
+	}
+	if x.p.Cmp(&xt.p) != 0 {
 		t.Error("256 Fractorize, no pass")
 	}
 }
