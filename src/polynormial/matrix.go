@@ -97,15 +97,24 @@ func (g *PMatrix) Set(i, j int, v int64) {
 func (g *PMatrix) Get(i, j int) int64 {
 	return g.A[j*g.M+i]
 }
-func (g *PMatrix) Guass() ([]int, bool) {
+func (g *PMatrix) Guass(v bool) (*PMatrix, bool) {
 	order := make([]int, g.M)
+	if g.M < g.N {
+		return nil, false
+	}
+	for i, _ := range order {
+		order[i] = i
+	}
 	for n := 0; n < g.N; n++ {
 		i, j, invable := g.FindMajor(n)
 		if !invable {
-			return order, false
+			return nil, false
 		}
 		g.SelectMajor(i, j, n, order)
 		in := g.p.Inv(g.Get(n, n))
+		if v {
+			fmt.Printf("%03x inv %03x\n", g.Get(n, n), in)
+		}
 		for i := n; i < g.M; i++ {
 			g.A[n*g.M+i] = g.p.Mul(g.A[n*g.M+i], in)
 		}
@@ -118,7 +127,13 @@ func (g *PMatrix) Guass() ([]int, bool) {
 			}
 		}
 	}
-	return order, true
+	r := g.p.NewMatrixInt64(g.M-g.N, g.N, make([]int64, (g.M-g.N)*g.N))
+	for i := 0; i < g.N; i++ {
+		for j := 0; j < g.M-g.N; j++ {
+			r.Set(j, order[i], g.Get(g.N+j, i))
+		}
+	}
+	return r, true
 }
 
 func (A *PMatrix) Mul(x *PMatrix) *PMatrix {

@@ -66,14 +66,14 @@ func (x *Prime) genTable() {
 }
 
 func (x *Prime) Add(a, b int64) int64 {
-	return a ^ b
+	return (a ^ b)
 }
 
 func (x *Prime) Mul(a, b int64) int64 {
-	if a <= 0 || a >= (x.size-1) {
+	if a <= 0 || a > (x.size-1) {
 		return 0
 	}
-	if b == 0 || b >= (x.size-1) {
+	if b == 0 || b > (x.size-1) {
 		return 0
 	}
 	if x.indexable {
@@ -87,10 +87,10 @@ func (x *Prime) Mul(a, b int64) int64 {
 }
 
 func (x *Prime) Div(a, b int64) int64 {
-	if a <= 0 || a >= (x.size-1) {
+	if a <= 0 || a > (x.size-1) {
 		return 0
 	}
-	if b == 0 || b >= (x.size-1) {
+	if b == 0 || b > (x.size-1) {
 		return 0
 	}
 	if x.indexable {
@@ -101,7 +101,7 @@ func (x *Prime) Div(a, b int64) int64 {
 }
 
 func (x *Prime) Inv(a int64) int64 {
-	if a <= 0 || a >= (x.size-1) {
+	if a <= 0 || a > (x.size-1) {
 		return 0
 	}
 	if x.indexable {

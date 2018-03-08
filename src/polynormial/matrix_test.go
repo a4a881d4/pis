@@ -1,28 +1,39 @@
 package polynormal
 
 import (
-	_ "fmt"
+	"fmt"
 	"testing"
 )
 
 func TestP128Matrix5X4(t *testing.T) {
 	m := make([]int, 20)
-	for i := 0; i < 20; i++ {
-		m[i] = polyRand.Intn(126)
-	}
 	prime := P128[0]
-	g := prime.NewMatrix(5, 4, m)
-	A := g.Part(0, 0, 4, 4)
-	X := g.Part(4, 0, 1, 4)
-	// A.PrintMatrix("A")
-	// X.PrintMatrix("X")
-	g.Guass()
-	Y := g.Part(4, 0, 1, 4)
-	// Y.PrintMatrix("Y")
-	Z := A.Mul(Y)
-	// Z.PrintMatrix("Z")
-	if !Z.Equ(X) {
-		t.Error("P128 Matrix(5X4) Guass, no pass")
+	for tcase := 0; tcase < 256; tcase++ {
+		for i := 0; i < 20; i++ {
+			m[i] = polyRand.Intn(127)
+		}
+		g := prime.NewMatrix(5, 4, m)
+		A := g.Part(0, 0, 4, 4)
+		X := g.Part(4, 0, 1, 4)
+		var Y *PMatrix
+		var invable bool
+		if tcase != 12 {
+			Y, invable = g.Guass(false)
+		} else {
+			Y, invable = g.Guass(false)
+		}
+		if invable {
+			Z := A.Mul(Y)
+			if !Z.Equ(X) {
+				fmt.Println("Case: ", tcase)
+				A.PrintMatrix("A")
+				X.PrintMatrix("X")
+				Y.PrintMatrix("Y")
+				Z.PrintMatrix("Z")
+				g.PrintMatrix("g")
+				t.Error("P128 Matrix(5X4) Guass, no pass")
+			}
+		}
 	}
 }
 
