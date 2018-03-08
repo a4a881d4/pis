@@ -48,7 +48,7 @@ func TestSign256(t *testing.T) {
 		"Through many of its unique properties",
 		"Bitcoin allows exciting uses that could not be covered by any previous payment system",
 		"end"}
-	message := make([][32]byte, len(messageString))
+	message := make([][32]byte, len(messageString), 1024+32)
 	for k, s := range messageString {
 		message[k] = sha256.Sum256([]byte(s))
 	}
@@ -63,10 +63,30 @@ func TestSign256(t *testing.T) {
 				Check256(message)
 				t.Error(messageString[k], " Check, no pass")
 			}
-			if sign.Gen.Order() != 97 {
+			if sign.Gen.Order() != 113 {
 				t.Error("miss order")
 			}
 		}
 	}
-
+	for k, s := range messageString {
+		message[k] = sha256.Sum256([]byte(s))
+	}
+	for i := len(message); i < 31; i++ {
+		for k, s := range message {
+			message[k] = sha256.Sum256(s[:])
+		}
+		sign := NewSign256(message)
+		for k, m := range message {
+			if !sign.Check256(m) {
+				fmt.Printf("%x\n", m)
+				Check256(message)
+				t.Error(k, " Check, no pass")
+			}
+			if sign.Gen.Order() != 113 {
+				fmt.Printf("%d: %x\n", sign.Gen.Order(), m)
+				t.Error(k, "miss order")
+			}
+		}
+		message = append(message, sha256.Sum256([]byte(messageString[0])))
+	}
 }

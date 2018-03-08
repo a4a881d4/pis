@@ -91,7 +91,7 @@ func toIntOne(message [32]byte, m int) []int {
 func NewSign256(message [][32]byte) *PSign {
 	n := len(message)
 	m := n + 1
-	g, v := P256Base.Solution(m, n, 12, toInt(message, m, n))
+	g, v := P256Base.Solution(m, n, 14, toInt(message, m, n))
 	return &PSign{Gen: g, S: v}
 }
 
