@@ -137,7 +137,7 @@ func TestP2048Basis(t *testing.T) {
 
 func TestP2048AS(t *testing.T) {
 	base := NewPolyBase(P2048)
-	for n := 0; n < 32; n++ {
+	for n := 0; n < 1; n++ {
 		x := NewRand(2000)
 		a := base.Analysis(x)
 		for i, ai := range a {

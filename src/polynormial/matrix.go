@@ -28,6 +28,14 @@ func (p *Prime) NewMatrix(m, n int, c []int) *PMatrix {
 	return &PMatrix{M: m, N: n, A: A, p: p}
 }
 
+func (p *Prime) NewMatrixInt64(m, n int, c []int64) *PMatrix {
+	A := make([]int64, m*n)
+	for i, k := range c {
+		A[i] = k
+	}
+	return &PMatrix{M: m, N: n, A: A, p: p}
+}
+
 func (p *PMatrix) NewMatrix() *PMatrix {
 	A := make([]int64, p.M*p.N)
 	for i, k := range p.A {
@@ -36,6 +44,13 @@ func (p *PMatrix) NewMatrix() *PMatrix {
 	return &PMatrix{M: p.M, N: p.N, A: A, p: p.p}
 }
 
+/*
+j ------ M
+i
+|
+|
+N
+*/
 func (p *PMatrix) PrintMatrix(s string) {
 	fmt.Println(s)
 	for i := 0; i < p.N; i++ {
@@ -66,15 +81,15 @@ func (p *PMatrix) SelectMajor(i, j, n int, col []int) {
 	}
 }
 
-func (p *PMatrix) FindMajor(n int) (int, int) {
-	for i := n; i < p.M; i++ {
+func (p *PMatrix) FindMajor(n int) (int, int, bool) {
+	for i := n; i < p.N; i++ {
 		for j := n; j < p.N; j++ {
 			if p.A[j*p.M+i] != 0 {
-				return i, j
+				return i, j, true
 			}
 		}
 	}
-	return p.M, p.N
+	return p.M, p.N, false
 }
 func (g *PMatrix) Set(i, j int, v int64) {
 	g.A[j*g.M+i] = v
@@ -82,29 +97,28 @@ func (g *PMatrix) Set(i, j int, v int64) {
 func (g *PMatrix) Get(i, j int) int64 {
 	return g.A[j*g.M+i]
 }
-func (g *PMatrix) Guass() {
+func (g *PMatrix) Guass() ([]int, bool) {
 	order := make([]int, g.M)
 	for n := 0; n < g.N; n++ {
-		g.PrintMatrix("A")
-		i, j := g.FindMajor(n)
+		i, j, invable := g.FindMajor(n)
+		if !invable {
+			return order, false
+		}
 		g.SelectMajor(i, j, n, order)
-		g.PrintMatrix("FM")
 		in := g.p.Inv(g.Get(n, n))
-		fmt.Println("in", in)
 		for i := n; i < g.M; i++ {
 			g.A[n*g.M+i] = g.p.Mul(g.A[n*g.M+i], in)
 		}
-		g.PrintMatrix("GYH")
 		for j := 0; j < g.N; j++ {
 			if j != n {
 				for i := n + 1; i < g.M; i++ {
 					g.A[j*g.M+i] = g.p.Add(g.A[j*g.M+i], g.p.Mul(g.A[j*g.M+n], g.A[n*g.M+i]))
 				}
-				g.A[j*g.M+n] = 0
+				g.A[j*g.M+n] = g.p.Add(g.A[j*g.M+n], g.p.Mul(g.A[j*g.M+n], g.A[n*g.M+n]))
 			}
-			g.PrintMatrix("X")
 		}
 	}
+	return order, true
 }
 
 func (A *PMatrix) Mul(x *PMatrix) *PMatrix {
@@ -119,20 +133,36 @@ func (A *PMatrix) Mul(x *PMatrix) *PMatrix {
 		for j := 0; j < m; j++ {
 			r.Set(i, j, 0)
 			for k := 0; k < A.M; k++ {
-				r.Set(i, j, A.p.Add(r.Get(i, j), A.p.Mul(A.Get(i, k), x.Get(k, j))))
+				r.Set(i, j, A.p.Add(r.Get(i, j), A.p.Mul(A.Get(k, i), x.Get(j, k))))
 			}
+
 		}
 	}
 	return r
 }
 
-func (A *PMatrix) Part(j, i, m, n int) *PMatrix {
+func (A *PMatrix) Part(i, j, m, n int) *PMatrix {
 	d := make([]int, m*n)
 	r := A.p.NewMatrix(m, n, d)
-	for ii := 0; ii < n; ii++ {
-		for jj := 0; jj < m; jj++ {
-			r.Set(jj, ii, A.Get(j+jj, i+ii))
+	for jj := 0; jj < n; jj++ {
+		for ii := 0; ii < m; ii++ {
+			r.Set(ii, jj, A.Get(i+ii, j+jj))
 		}
 	}
 	return r
+}
+
+func (A *PMatrix) Equ(B *PMatrix) bool {
+	if A.p.poly != B.p.poly {
+		return false
+	}
+	if A.M != B.M || A.N != B.N {
+		return false
+	}
+	for i, k := range A.A {
+		if B.A[i] != k {
+			return false
+		}
+	}
+	return true
 }
