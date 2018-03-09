@@ -89,7 +89,7 @@ func (b *PolyBase) NSolution(m, n, maxb int, c []int) (*PMatrix, *PMatrix) {
 			r[i*len(basis)+k] = int(p.index[y[k].A[i]])
 		}
 	}
-	p := basis[0]
+	p := basis[2]
 	B := p.NewMatrix(n, 1, c[0+m:n+m])
 	B.PrintMatrix("B")
 	C := p.NewMatrix(len(basis), n, r)
