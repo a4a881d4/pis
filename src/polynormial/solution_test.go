@@ -34,25 +34,39 @@ func TestP256Solution5X4(t *testing.T) {
 	}
 }
 
+var messageString = [...]string{
+	"a4a881d4",
+	"a4a881d4@163.com",
+	"hello world",
+	"proof in set",
+	"Bitcoin uses peer-to-peer technology to operate with no central authority or banks",
+	"managing transactions and the issuing of bitcoins is carried out collectively by the network",
+	"Bitcoin is open-source",
+	"its design is public",
+	"nobody owns or controls Bitcoin and everyone can take part",
+	"Through many of its unique properties",
+	"Bitcoin allows exciting uses that could not be covered by any previous payment system",
+	"end"}
+
 func TestSign256(t *testing.T) {
-	messageString := [...]string{
-		"a4a881d4",
-		"a4a881d4@163.com",
-		"hello world",
-		"proof in set",
-		"Bitcoin uses peer-to-peer technology to operate with no central authority or banks",
-		"managing transactions and the issuing of bitcoins is carried out collectively by the network",
-		"Bitcoin is open-source",
-		"its design is public",
-		"nobody owns or controls Bitcoin and everyone can take part",
-		"Through many of its unique properties",
-		"Bitcoin allows exciting uses that could not be covered by any previous payment system",
-		"end"}
+	// messageString := [...]string{
+	// 	"a4a881d4",
+	// 	"a4a881d4@163.com",
+	// 	"hello world",
+	// 	"proof in set",
+	// 	"Bitcoin uses peer-to-peer technology to operate with no central authority or banks",
+	// 	"managing transactions and the issuing of bitcoins is carried out collectively by the network",
+	// 	"Bitcoin is open-source",
+	// 	"its design is public",
+	// 	"nobody owns or controls Bitcoin and everyone can take part",
+	// 	"Through many of its unique properties",
+	// 	"Bitcoin allows exciting uses that could not be covered by any previous payment system",
+	// 	"end"}
 	message := make([][32]byte, len(messageString), 1024+32)
 	for k, s := range messageString {
 		message[k] = sha256.Sum256([]byte(s))
 	}
-	for i := 0; i < 1024; i++ {
+	for i := 0; i < 32; i++ {
 		for k, s := range message {
 			message[k] = sha256.Sum256(s[:])
 		}
@@ -89,4 +103,14 @@ func TestSign256(t *testing.T) {
 		}
 		message = append(message, sha256.Sum256([]byte(messageString[0])))
 	}
+}
+
+func TestNSolution(t *testing.T) {
+	message := make([][32]byte, len(messageString), 1024+32)
+	for k, s := range messageString {
+		message[k] = sha256.Sum256([]byte(s))
+	}
+	n := len(message)
+	m := n + 1
+	P256Base.NSolution(m, n, 14, toInt(message, m, n))
 }

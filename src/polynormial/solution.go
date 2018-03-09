@@ -1,7 +1,7 @@
 package polynormal
 
 import (
-	_ "fmt"
+	"fmt"
 )
 
 func (b *PolyBase) Solution(m, n, maxb int, c []int) (*Poly, []*Poly) {
@@ -64,4 +64,33 @@ func (products *Poly) CheckSolution(s int, x []*Poly, c []int) bool {
 		}
 		return false
 	}
+}
+
+func (b *PolyBase) NSolution(m, n, maxb int, c []int) (*PMatrix, *PMatrix) {
+	basis := make([]*Prime, 0, len(b.basisPoly))
+	y := make([]*PMatrix, 0, len(b.basisPoly))
+	for _, p := range b.basisPoly {
+		A := p.NewMatrix(m, n, c)
+		Y, invable := A.Guass(false)
+		if invable {
+			basis = append(basis, p)
+			y = append(y, Y)
+			if len(basis) >= maxb {
+				break
+			}
+		}
+	}
+	r := make([]int, n*len(basis))
+	for i := 0; i < n; i++ {
+		for k, p := range basis {
+			r[i*len(basis)+k] = int(p.index[y[k].A[i]])
+		}
+	}
+	p := basis[0]
+	B := p.NewMatrix(n, 1, c[m:n+m])
+	C := p.NewMatrix(len(basis), n, r)
+	D := B.Mul(C)
+	D.PrintMatrix("D")
+	fmt.Printf("M %02x\n", p.index[c[m+n]])
+	return D, C
 }
