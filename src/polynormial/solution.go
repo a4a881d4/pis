@@ -69,9 +69,12 @@ func (products *Poly) CheckSolution(s int, x []*Poly, c []int) bool {
 func (b *PolyBase) NSolution(m, n, maxb int, c []int) (*PMatrix, *PMatrix) {
 	basis := make([]*Prime, 0, len(b.basisPoly))
 	y := make([]*PMatrix, 0, len(b.basisPoly))
-	for _, p := range b.basisPoly {
+	for k, p := range b.basisPoly {
 		A := p.NewMatrix(m, n, c)
+		fmt.Println("k", k)
+		A.PrintMatrix("A")
 		Y, invable := A.Guass(false)
+		Y.PrintMatrix("Y")
 		if invable {
 			basis = append(basis, p)
 			y = append(y, Y)
@@ -87,10 +90,12 @@ func (b *PolyBase) NSolution(m, n, maxb int, c []int) (*PMatrix, *PMatrix) {
 		}
 	}
 	p := basis[0]
-	B := p.NewMatrix(n, 1, c[m:n+m])
+	B := p.NewMatrix(n, 1, c[0+m:n+m])
+	B.PrintMatrix("B")
 	C := p.NewMatrix(len(basis), n, r)
+	C.PrintMatrix("C")
 	D := B.Mul(C)
 	D.PrintMatrix("D")
-	fmt.Printf("M %02x\n", p.index[c[m+n]])
+	fmt.Printf("M %02x\n", p.power[c[n+m]])
 	return D, C
 }

@@ -150,8 +150,8 @@ func (A *PMatrix) Mul(x *PMatrix) *PMatrix {
 	}
 	m := x.M
 	n := A.N
-	A.PrintMatrix("A")
-	x.PrintMatrix("x")
+	// A.PrintMatrix("A")
+	// x.PrintMatrix("x")
 	d := make([]int, m*n)
 	r := A.p.NewMatrix(m, n, d)
 	for i := 0; i < n; i++ {
@@ -161,7 +161,7 @@ func (A *PMatrix) Mul(x *PMatrix) *PMatrix {
 				r.Set(j, i, A.p.Add(r.Get(j, i), A.p.Mul(A.Get(k, i), x.Get(j, k))))
 			}
 		}
-		r.PrintMatrix("R")
+		// r.PrintMatrix("R")
 	}
 	return r
 }
