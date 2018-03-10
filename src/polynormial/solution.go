@@ -1,7 +1,7 @@
 package polynormal
 
 import (
-	"fmt"
+	_ "fmt"
 )
 
 func (b *PolyBase) Solution(m, n, maxb int, c []int) (*Poly, []*Poly) {
@@ -66,15 +66,15 @@ func (products *Poly) CheckSolution(s int, x []*Poly, c []int) bool {
 	}
 }
 
-func (b *PolyBase) NSolution(m, n, maxb int, c []int) (*PMatrix, *PMatrix) {
+func (b *PolyBase) NSolution(m, n, maxb int, c []int) ([]int, []*Prime) {
 	basis := make([]*Prime, 0, len(b.basisPoly))
 	y := make([]*PMatrix, 0, len(b.basisPoly))
-	for k, p := range b.basisPoly {
+	for _, p := range b.basisPoly {
 		A := p.NewMatrix(m, n, c)
-		fmt.Println("k", k)
-		A.PrintMatrix("A")
+		// fmt.Println("k", k)
+		// A.PrintMatrix("A")
 		Y, invable := A.Guass(false)
-		Y.PrintMatrix("Y")
+		// Y.PrintMatrix("Y")
 		if invable {
 			basis = append(basis, p)
 			y = append(y, Y)
@@ -89,13 +89,21 @@ func (b *PolyBase) NSolution(m, n, maxb int, c []int) (*PMatrix, *PMatrix) {
 			r[i*len(basis)+k] = int(p.index[y[k].A[i]])
 		}
 	}
-	p := basis[2]
-	B := p.NewMatrix(n, 1, c[0+m:n+m])
-	B.PrintMatrix("B")
-	C := p.NewMatrix(len(basis), n, r)
-	C.PrintMatrix("C")
+	return r, basis
+}
+
+func (p *Prime) NCheckSolution(m, n, pos, pk int, c, r []int) bool {
+	B := p.NewMatrix(n, 1, c[0+m*pos:n+m*pos])
+	// B.PrintMatrix("B")
+	lbasis := len(r) / n
+	C := p.NewMatrix(lbasis, n, r)
+	// C.PrintMatrix("C")
 	D := B.Mul(C)
-	D.PrintMatrix("D")
-	fmt.Printf("M %02x\n", p.power[c[n+m]])
-	return D, C
+	// D.PrintMatrix("D")
+	// fmt.Printf("M %02x\n", p.power[c[n+m*pos]])
+	if D.A[pk] == p.power[c[n+m*pos]] {
+		return true
+	} else {
+		return false
+	}
 }
