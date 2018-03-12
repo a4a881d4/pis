@@ -155,3 +155,19 @@ func TestP2048AS(t *testing.T) {
 		}
 	}
 }
+
+func TestP128AlfaN(t *testing.T) {
+	p := P128[0]
+	p.ToPoly().PrintPoly()
+	for j:=2;j<18;j++ {
+		p2 := NewPolyInt64(0)
+		for i:=0;i<8;i++ {
+			if ((p.poly>>uint(i))&1)==1 {
+				p2.Add(p2,NewXn(j*i))
+			}
+		}
+		p2.PrintPoly()
+		p2.DivRem(p.ToPoly())
+		p2.Println(fmt.Sprintf("%d",j))
+	}
+}
